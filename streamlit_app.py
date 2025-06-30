@@ -62,8 +62,8 @@ if st.button("Submit Feedback"):
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         credentials = Credentials.from_service_account_info(st.secrets["gspread"], scopes=scope)
         client = gspread.authorize(credentials)
-
-        # Open your sheet by name (replace with your actual sheet name)
+        st.success("✅ Google Sheets authentication successful!")  # 👈 This confirms your secret works
+        # Open sheet by name
         sheet = client.open("LSTM_ARIMA_Feedback").worksheet("responses")
 
         # Prepare the row
