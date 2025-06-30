@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import gspread
+from google.oauth2.service_account import Credentials
+import datetime
 
 # Load dataset
 df = pd.read_csv("LSTM_ARIMA_ActualPrice.csv", parse_dates=["Prediction_Date"])
@@ -54,23 +57,29 @@ import datetime
 import os
 
 if st.button("Submit Feedback"):
-    feedback = {
-        "timestamp": datetime.datetime.now(),
-        "selected_date": selected_date_str,
-        "model_choice": model_choice,
-        "confidence": confidence,
-        "comment": comment
-    }
+    try:
+        # Connect to Google Sheets using Streamlit secrets
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        credentials = Credentials.from_service_account_info(st.secrets["gspread"], scopes=scope)
+        client = gspread.authorize(credentials)
 
-    feedback_df = pd.DataFrame([feedback])
-    feedback_file = "expert_feedback.csv"
+        # Open your sheet by name (replace with your actual sheet name)
+        sheet = client.open("LSTM_ARIMA_Feedback").worksheet("responses")
 
-    if os.path.exists(feedback_file):
-        existing = pd.read_csv(feedback_file)
-        updated = pd.concat([existing, feedback_df], ignore_index=True)
-        updated.to_csv(feedback_file, index=False)
-    else:
-        feedback_df.to_csv(feedback_file, index=False)
+        # Prepare the row
+        new_row = [
+            datetime.datetime.now().isoformat(),
+            selected_date_str,
+            model_choice,
+            confidence,
+            comment
+        ]
 
-    st.success("✅ Thank you! Your feedback has been saved.")
+        # Append to the sheet
+        sheet.append_row(new_row)
+        st.success("✅ Thank you! Your feedback has been saved.")
+
+    except Exception as e:
+        st.error(f"⚠️ Something went wrong while saving your feedback: {e}")
+
 
