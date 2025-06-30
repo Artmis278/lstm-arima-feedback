@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 # Load dataset
-df = pd.read_excel("LSTM_ARIMA_ActualPrice.xlsx")
+df = pd.read_excel("LSTM_ARIMA_ActualPrice.csv")
 
 # Drop rows with missing actual or predicted values
 df = df.dropna(subset=["Actual_Price", "Predicted_LSTM_Price", "Predicted_ARIMA_Price"])
