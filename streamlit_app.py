@@ -50,7 +50,27 @@ model_choice = st.radio("Which model's prediction do you trust more?", ["LSTM", 
 confidence = st.slider("How confident would you be using this forecast in a real procurement decision?", 0, 100, 50)
 comment = st.text_area("Additional comments (optional):")
 
+import datetime
+import os
+
 if st.button("Submit Feedback"):
-    st.success("✅ Thank you! Your feedback has been recorded.")
-    # You can later extend this to save feedback to a file or database
+    feedback = {
+        "timestamp": datetime.datetime.now(),
+        "selected_date": selected_date_str,
+        "model_choice": model_choice,
+        "confidence": confidence,
+        "comment": comment
+    }
+
+    feedback_df = pd.DataFrame([feedback])
+    feedback_file = "expert_feedback.csv"
+
+    if os.path.exists(feedback_file):
+        existing = pd.read_csv(feedback_file)
+        updated = pd.concat([existing, feedback_df], ignore_index=True)
+        updated.to_csv(feedback_file, index=False)
+    else:
+        feedback_df.to_csv(feedback_file, index=False)
+
+    st.success("✅ Thank you! Your feedback has been saved.")
 
