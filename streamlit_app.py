@@ -75,32 +75,14 @@ def send_feedback_email(subject, body):
 
 # Submit feedback logic
 if st.button("Submit Feedback"):
-    try:
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        credentials = Credentials.from_service_account_info(st.secrets["gspread"], scopes=scope)
-        client = gspread.authorize(credentials)
-        sheet = client.open("LSTM_ARIMA_Feedback").worksheet("responses")
-
-        new_row = [
-            datetime.datetime.now().isoformat(),
-            selected_date_str,
-            model_choice,
-            confidence,
-            comment
-        ]
-        sheet.append_row(new_row)
-        st.success("✅ Thank you! Your feedback has been saved to Google Sheets.")
-
-    except Exception as e:
-        st.warning(f"⚠️ Google Sheets failed: {e}")
-        subject = f"⚠️ Feedback fallback - {model_choice}"
-        body = f"""Date: {selected_date_str}
+    subject = f"🗣️ Forecast Feedback - {model_choice}"
+    body = f"""Date: {selected_date_str}
 Model: {model_choice}
 Confidence: {confidence}
 Comment: {comment}
 Timestamp: {datetime.datetime.now().isoformat()}"""
 
-        if send_feedback_email(subject, body):
-            st.success("📧 Feedback was emailed as a backup.")
-        else:
-            st.error("❌ Feedback could not be saved anywhere.")
+    if send_feedback_email(subject, body):
+        st.success("📧 Thank you! Your feedback has been emailed successfully.")
+    else:
+        st.error("❌ Feedback could not be sent.")
