@@ -3,27 +3,6 @@ import pandas as pd
 import numpy as np
 import gspread
 from google.oauth2.service_account import Credentials
-import streamlit as st
-
-try:
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    credentials = Credentials.from_service_account_info(st.secrets["gspread"], scopes=scope)
-    client = gspread.authorize(credentials)
-
-    st.success("✅ Google Sheets authentication successful!")
-
-    # Try opening your target sheet
-    spreadsheet = client.open("LSTM_ARIMA_Feedback")
-    st.info(f"📄 Connected to spreadsheet: {spreadsheet.title}")
-
-    # List sheet names
-    sheet_names = [ws.title for ws in spreadsheet.worksheets()]
-    st.write("Available worksheets:", sheet_names)
-
-except Exception as e:
-    st.error(f"❌ Failed to connect to Google Sheets: {e}")
-
-from google.oauth2.service_account import Credentials
 import datetime
 
 # Load dataset
