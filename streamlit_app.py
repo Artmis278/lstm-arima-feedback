@@ -49,24 +49,25 @@ with st.expander("ℹ️ How do these models work?"):
 
 # Feedback form
 st.subheader("🗣️ Expert Feedback")
+
+# Initialize feedback fields safely
 model_choice = st.radio("Which model's prediction do you trust more?", ["LSTM", "ARIMA", "Both equally", "Neither"])
 confidence = st.slider("How confident would you be using this forecast in a real procurement decision?", 0, 100, 50)
 comment = st.text_area("Additional comments (optional):")
 
-import datetime
-import os
-
+# Handle feedback submission
 if st.button("Submit Feedback"):
     try:
-        # Connect to Google Sheets using Streamlit secrets
+        # Google Sheets auth
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         credentials = Credentials.from_service_account_info(st.secrets["gspread"], scopes=scope)
         client = gspread.authorize(credentials)
-        st.success("✅ Google Sheets authentication successful!")  # 👈 This confirms your secret works
-        # Open sheet by name
+        st.success("✅ Google Sheets authentication successful!")
+
+        # Connect to spreadsheet and sheet
         sheet = client.open("LSTM_ARIMA_Feedback").worksheet("responses")
 
-        # Prepare the row
+        # Prepare feedback entry
         new_row = [
             datetime.datetime.now().isoformat(),
             selected_date_str,
@@ -75,11 +76,9 @@ if st.button("Submit Feedback"):
             comment
         ]
 
-        # Append to the sheet
+        # Write to sheet
         sheet.append_row(new_row)
         st.success("✅ Thank you! Your feedback has been saved.")
 
     except Exception as e:
         st.error(f"⚠️ Something went wrong while saving your feedback: {e}")
-
-
