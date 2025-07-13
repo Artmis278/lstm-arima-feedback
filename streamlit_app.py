@@ -141,7 +141,7 @@ if ask_button and user_question.strip():
 ---------------------------
 Timestamp: {datetime.datetime.now().isoformat()}
 Prediction Date: {selected_date_str}
-Model Trusted: {model_choice}
+Model Trusted: {model_choice if 'model_choice' in locals() else 'Not selected'}
 User Question: {user_question}
 AI Response: {reply}
 """
