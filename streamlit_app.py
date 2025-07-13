@@ -105,10 +105,8 @@ st.plotly_chart(fig, use_container_width=True)
 with st.expander("ℹ️ How do these models work?"):
     st.markdown("**LSTM** (Long Short-Term Memory) is a type of deep learning model that learns from historical sequences of data. It is designed to detect complex, nonlinear patterns in time series, making it well-suited for forecasting tasks in volatile markets.")
     st.markdown("**ARIMA** (AutoRegressive Integrated Moving Average) is a classical statistical model that uses past values and error terms to predict future points. It is known for its transparency and interpretability but can struggle with rapidly changing trends.")
-import openai
-
 # -----------------------------
-# 💬 ForecastPal Chatbot Section
+# 💬 ForecastPal Chatbot Section (with manual input)
 # -----------------------------
 st.markdown("---")
 st.subheader("💬 Ask ForecastPal 🤖")
@@ -117,9 +115,10 @@ st.markdown(
     "ask ForecastPal – your steel forecasting sidekick!"
 )
 
-user_question = st.chat_input("Type your question here...")
+user_question = st.text_area("Type your question below:", placeholder="e.g., Why is LSTM better this month?", height=100)
+ask_button = st.button("Ask ForecastPal")
 
-if user_question:
+if ask_button and user_question.strip():
     with st.spinner("ForecastPal is thinking..."):
         try:
             openai.api_key = st.secrets["openai"]["api_key"]
@@ -149,6 +148,7 @@ AI Response: {reply}
 
         except Exception as e:
             st.error(f"⚠️ ForecastPal had a problem: {e}")
+
 
 # Feedback form
 st.subheader("🗣️ Expert Feedback")
