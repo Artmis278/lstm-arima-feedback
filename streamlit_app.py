@@ -105,6 +105,50 @@ st.plotly_chart(fig, use_container_width=True)
 with st.expander("ℹ️ How do these models work?"):
     st.markdown("**LSTM** (Long Short-Term Memory) is a type of deep learning model that learns from historical sequences of data. It is designed to detect complex, nonlinear patterns in time series, making it well-suited for forecasting tasks in volatile markets.")
     st.markdown("**ARIMA** (AutoRegressive Integrated Moving Average) is a classical statistical model that uses past values and error terms to predict future points. It is known for its transparency and interpretability but can struggle with rapidly changing trends.")
+import openai
+
+# -----------------------------
+# 💬 ForecastPal Chatbot Section
+# -----------------------------
+st.markdown("---")
+st.subheader("💬 Ask ForecastPal 🤖")
+st.markdown(
+    "If you have any questions about the forecasts, modeling approach, or why the models differ, "
+    "ask ForecastPal – your steel forecasting sidekick!"
+)
+
+user_question = st.chat_input("Type your question here...")
+
+if user_question:
+    with st.spinner("ForecastPal is thinking..."):
+        try:
+            openai.api_key = st.secrets["openai"]["api_key"]
+
+            # Send question to OpenAI
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are ForecastPal, a helpful assistant that explains AI models, especially LSTM and ARIMA, used for steel price forecasting."},
+                    {"role": "user", "content": user_question}
+                ]
+            )
+            reply = response.choices[0].message.content
+            st.markdown(f"**ForecastPal 🤖 says:**\n\n{reply}")
+
+            # Send email with chat log
+            subject = "📩 Chatbot Question Logged"
+            body = f"""Chatbot Question Submitted
+---------------------------
+Timestamp: {datetime.datetime.now().isoformat()}
+Prediction Date: {selected_date_str}
+Model Trusted: {model_choice}
+User Question: {user_question}
+AI Response: {reply}
+"""
+            send_feedback_email(subject, body)
+
+        except Exception as e:
+            st.error(f"⚠️ ForecastPal had a problem: {e}")
 
 # Feedback form
 st.subheader("🗣️ Expert Feedback")
