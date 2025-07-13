@@ -105,6 +105,7 @@ st.plotly_chart(fig, use_container_width=True)
 with st.expander("ℹ️ How do these models work?"):
     st.markdown("**LSTM** (Long Short-Term Memory) is a type of deep learning model that learns from historical sequences of data. It is designed to detect complex, nonlinear patterns in time series, making it well-suited for forecasting tasks in volatile markets.")
     st.markdown("**ARIMA** (AutoRegressive Integrated Moving Average) is a classical statistical model that uses past values and error terms to predict future points. It is known for its transparency and interpretability but can struggle with rapidly changing trends.")
+import openai
 # -----------------------------
 # 💬 ForecastPal Chatbot Section (with manual input)
 # -----------------------------
