@@ -184,6 +184,7 @@ AI Response: {reply}
 # Feedback form
 st.subheader("🗣️ Expert Feedback")
 model_choice = st.radio("Which model's prediction do you trust more?", ["LSTM", "ARIMA", "Both equally", "Neither"])
+st.session_state["model_choice"] = model_choice
 confidence = st.slider("How confident would you be using this forecast in a real procurement decision?", 0, 100, 50)
 comment = st.text_area("Additional comments (optional):")
 
