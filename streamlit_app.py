@@ -101,13 +101,6 @@ def send_feedback_email(subject, body):
         return False
 
 # 💬 ForecastPal Chatbot – Unified Chat Interface
-st.markdown("""
-    <div style='border: 2px solid #4CAF50; border-radius: 15px; padding: 25px; background-color: #f8f9fa; margin: 20px 0;'>
-        <h3 style='margin-top: 0; color: #2E7D32; text-align: center;'>💬 Ask ForecastPal 🤖</h3>
-        <p style='text-align: center; color: #555; margin-bottom: 20px;'>If you have any questions about the forecasts, modeling approach, or why the models differ,<br>
-        ask ForecastPal – your steel forecasting sidekick!</p>
-""", unsafe_allow_html=True)
-
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
@@ -151,15 +144,19 @@ AI Response: {reply}
         finally:
             del st.session_state["pending_question"]
 
-# Chat History Section (inside the green box)
+# Main container with green border
 st.markdown("""
+<div style='border: 2px solid #4CAF50; border-radius: 15px; padding: 25px; background-color: #f8f9fa; margin: 20px 0;'>
+    <h3 style='margin-top: 0; color: #2E7D32; text-align: center;'>💬 Ask ForecastPal 🤖</h3>
+    <p style='text-align: center; color: #555; margin-bottom: 20px;'>If you have any questions about the forecasts, modeling approach, or why the models differ,<br>
+    ask ForecastPal – your steel forecasting sidekick!</p>
+    
     <div style='background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 20px;'>
         <h4 style='margin-top: 0; color: #333;'>📜 Chat History</h4>
+        <div style='max-height: 300px; overflow-y: auto;'>
 """, unsafe_allow_html=True)
 
-# Scrollable message history
-st.markdown("<div style='max-height: 300px; overflow-y: auto;'>", unsafe_allow_html=True)
-
+# Display chat history
 if st.session_state.chat_history:
     for chat in st.session_state.chat_history:
         st.markdown(f"""
@@ -177,25 +174,24 @@ else:
         </div>
     """, unsafe_allow_html=True)
 
-st.markdown("</div></div>", unsafe_allow_html=True)  # Close scrollable area and chat history section
-
-# Input Section (inside the green box)
 st.markdown("""
-    <div style='background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px;'>
+        </div>
+    </div>
+    
+    <div style='background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px; padding: 15px;'>
         <h4 style='margin-top: 0; color: #333;'>✍️ Ask Your Question</h4>
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
-# Input + Send button
+# Input form - placed after the HTML container
 with st.form(key="chat_form", clear_on_submit=True):
     user_question = st.text_input("Ask ForecastPal...", placeholder="Type your question here", help="Ask about LSTM vs ARIMA models, forecast accuracy, or any other questions!")
     submitted = st.form_submit_button("Send", use_container_width=True)
 
     if submitted and user_question.strip():
-        st.session_state["pending_question"] = user_question  # ✅ Save input to process outside form
-        st.rerun()  # Immediately rerun to process the question
-
-st.markdown("</div>", unsafe_allow_html=True)  # Close input section
-st.markdown("</div>", unsafe_allow_html=True)  # Close main container box
+        st.session_state["pending_question"] = user_question
+        st.rerun()
 
 # Feedback form
 st.subheader("🗣️ Expert Feedback")
