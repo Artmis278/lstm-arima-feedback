@@ -18,6 +18,9 @@ if "session_id" not in st.session_state:
     st.session_state["session_id"] = str(datetime.datetime.now().timestamp())
 
 session_id = st.session_state["session_id"]
+# Predefine shared session variables
+if "model_choice" not in st.session_state:
+    st.session_state["model_choice"] = "Not selected"
 
 st.title("🔍 Steel Price Forecast Evaluation")
 st.markdown("Welcome! Please select a prediction date to compare actual steel prices with forecasts from LSTM and ARIMA models.")
@@ -168,7 +171,7 @@ if ask_button and user_question.strip():
 Session ID: {session_id}
 Timestamp: {datetime.datetime.now().isoformat()}
 Prediction Date: {selected_date_str}
-Model Trusted: {model_choice if 'model_choice' in locals() else 'Not selected'}
+Model Trusted: {st.session_state['model_choice']}
 User Question: {user_question}
 AI Response: {reply}
 """
