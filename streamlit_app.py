@@ -136,58 +136,50 @@ def send_feedback_email(subject, body):
         return False
 import openai
 # -----------------------------
-# 💬 ForecastPal Chatbot Section (Fixed Unified UI)
+# 💬 ForecastPal Chatbot Section (Unified Layout, One Div)
 # -----------------------------
 with st.container():
-    st.markdown("## 💬 Ask ForecastPal 🤖")
-    st.markdown(
-        "If you have any questions about the forecasts, modeling approach, or why the models differ, "
-        "ask ForecastPal – your steel forecasting sidekick!"
-    )
+    st.markdown("""
+        <div style='border: 1px solid lightgray; border-radius: 10px; padding: 20px; background-color: #f9f9f9;'>
+            <h3 style='margin-top: 0;'>💬 Ask ForecastPal 🤖</h3>
+            <p>If you have any questions about the forecasts, modeling approach, or why the models differ,<br>
+            ask ForecastPal – your steel forecasting sidekick!</p>
+    """, unsafe_allow_html=True)
 
-    st.markdown("---")
+    # Initialize chat history
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
 
-    # Create chat UI box
-    chat_box = st.container()
-    with chat_box:
-        st.markdown(
-            "<div style='border: 1px solid #ccc; border-radius: 10px; padding: 20px; background-color: #f9f9f9;'>",
-            unsafe_allow_html=True
-        )
+    # Chat input & button side by side
+    col1, col2 = st.columns([5, 1])
+    with col1:
+        user_question = st.text_input("Ask ForecastPal...", key="chat_input", label_visibility="collapsed")
+    with col2:
+        ask = st.button("Ask", use_container_width=True)
 
-        # Initialize history
-        if "chat_history" not in st.session_state:
-            st.session_state.chat_history = []
+    # Handle response
+    if ask and user_question.strip():
+        with st.spinner("ForecastPal is thinking..."):
+            try:
+                openai.api_key = st.secrets["openai"]["api_key"]
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are ForecastPal, a helpful assistant that explains AI models, especially LSTM and ARIMA, used for steel price forecasting."},
+                        {"role": "user", "content": user_question}
+                    ]
+                )
+                reply = response.choices[0].message.content
 
-        # Input + Button
-        col1, col2 = st.columns([5, 1])
-        with col1:
-            user_question = st.text_input("Type your question:", key="chat_input", label_visibility="collapsed", placeholder="Ask ForecastPal...")
-        with col2:
-            ask = st.button("Ask")
+                st.session_state.chat_history.append({
+                    "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "question": user_question,
+                    "answer": reply
+                })
 
-        # Handle send
-        if ask and user_question.strip():
-            with st.spinner("ForecastPal is thinking..."):
-                try:
-                    openai.api_key = st.secrets["openai"]["api_key"]
-                    response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are ForecastPal, a helpful assistant that explains AI models, especially LSTM and ARIMA, used for steel price forecasting."},
-                            {"role": "user", "content": user_question}
-                        ]
-                    )
-                    reply = response.choices[0].message.content
-
-                    st.session_state.chat_history.append({
-                        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "question": user_question,
-                        "answer": reply
-                    })
-
-                    subject = f"📩 Chatbot Question Logged [Session ID: {session_id}]"
-                    body = f"""Chatbot Question Submitted
+                # Email the question/response
+                subject = f"📩 Chatbot Question Logged [Session ID: {session_id}]"
+                body = f"""Chatbot Question Submitted
 ---------------------------
 Session ID: {session_id}
 Timestamp: {datetime.datetime.now().isoformat()}
@@ -196,26 +188,27 @@ Model Trusted: {st.session_state['model_choice']}
 User Question: {user_question}
 AI Response: {reply}
 """
-                    send_feedback_email(subject, body)
+                send_feedback_email(subject, body)
 
-                    st.rerun()
+                st.rerun()
 
-                except Exception as e:
-                    st.error(f"⚠️ ForecastPal had a problem: {e}")
+            except Exception as e:
+                st.error(f"⚠️ ForecastPal had a problem: {e}")
 
-        # Show history
-        st.markdown("<div style='max-height: 300px; overflow-y: auto;'>", unsafe_allow_html=True)
-        for chat in reversed(st.session_state.chat_history):
-            st.markdown(f"""
+    # Chat history (inside same box)
+    st.markdown("""
+        <div style='max-height: 300px; overflow-y: auto; margin-top: 20px; padding-right: 10px;'>
+    """, unsafe_allow_html=True)
+
+    for chat in reversed(st.session_state.chat_history):
+        st.markdown(f"""
             <div style="margin-bottom: 1rem;">
                 <b>🧑 You ({chat['timestamp']}):</b><br>{chat['question']}<br>
                 <b>🤖 ForecastPal:</b><br>{chat['answer']}
             </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-        st.markdown("</div>", unsafe_allow_html=True)  # close chat box
-
+    st.markdown("</div></div>", unsafe_allow_html=True)  # Close both history and main div
 
 # Feedback form
 st.subheader("🗣️ Expert Feedback")
