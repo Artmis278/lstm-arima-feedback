@@ -136,36 +136,49 @@ def send_feedback_email(subject, body):
         return False
 import openai
 # -----------------------------
-# 💬 ForecastPal Chatbot Section (with manual input)
+# 💬 ForecastPal Chatbot Section with Chat History
 # -----------------------------
-st.markdown("---")
-st.subheader("💬 Ask ForecastPal 🤖")
-st.markdown(
-    "If you have any questions about the forecasts, modeling approach, or why the models differ, "
-    "ask ForecastPal – your steel forecasting sidekick!"
-)
+with st.container():
+    st.markdown(
+        """
+        <div style='border: 1px solid lightgray; border-radius: 10px; padding: 20px; background-color: #f9f9f9;'>
+            <h3 style='margin-top: 0;'>💬 Ask ForecastPal 🤖</h3>
+            <p>If you have any questions about the forecasts, modeling approach, or why the models differ, ask ForecastPal – your steel forecasting sidekick!</p>
+        """,
+        unsafe_allow_html=True
+    )
 
-user_question = st.text_area("Type your question below:", placeholder="e.g., Why is LSTM better this month?", height=100)
-ask_button = st.button("Ask ForecastPal")
+    # Initialize chat history
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
 
-if ask_button and user_question.strip():
-    with st.spinner("ForecastPal is thinking..."):
-        try:
-            openai.api_key = st.secrets["openai"]["api_key"]
-            # Send question to OpenAI
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are ForecastPal, a helpful assistant that explains AI models, especially LSTM and ARIMA, used for steel price forecasting."},
-                    {"role": "user", "content": user_question}
-                ]
-            )
-            reply = response.choices[0].message.content
-            st.markdown(f"**ForecastPal 🤖 says:**\n\n{reply}")
+    # Chat input
+    user_question = st.text_input("Type your question:", key="chat_input")
 
-            # Send email with chat log
-            subject = f"📩 Chatbot Question Logged [Session ID: {session_id}]"
-            body = f"""Chatbot Question Submitted
+    if st.button("Ask ForecastPal"):
+        if user_question.strip():
+            with st.spinner("ForecastPal is thinking..."):
+                try:
+                    openai.api_key = st.secrets["openai"]["api_key"]
+                    response = openai.ChatCompletion.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You are ForecastPal, a helpful assistant that explains AI models, especially LSTM and ARIMA, used for steel price forecasting."},
+                            {"role": "user", "content": user_question}
+                        ]
+                    )
+                    reply = response.choices[0].message.content
+
+                    # Append to history
+                    st.session_state.chat_history.append({
+                        "question": user_question,
+                        "answer": reply,
+                        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    })
+
+                    # Send email with chat log
+                    subject = f"📩 Chatbot Question Logged [Session ID: {session_id}]"
+                    body = f"""Chatbot Question Submitted
 ---------------------------
 Session ID: {session_id}
 Timestamp: {datetime.datetime.now().isoformat()}
@@ -174,10 +187,31 @@ Model Trusted: {st.session_state['model_choice']}
 User Question: {user_question}
 AI Response: {reply}
 """
-            send_feedback_email(subject, body)
+                    send_feedback_email(subject, body)
 
-        except Exception as e:
-            st.error(f"⚠️ ForecastPal had a problem: {e}")
+                    # Clear input
+                    st.experimental_rerun()
+
+                except Exception as e:
+                    st.error(f"⚠️ ForecastPal had a problem: {e}")
+
+    # Display chat history
+    st.markdown(
+        """
+        <div style='max-height: 300px; overflow-y: auto; padding: 10px; background-color: #ffffff; border: 1px solid #ccc; border-radius: 8px; margin-top: 20px;'>
+        """,
+        unsafe_allow_html=True
+    )
+
+    for pair in st.session_state.chat_history[::-1]:  # latest on top
+        st.markdown(f"""
+        <div style="margin-bottom: 15px;">
+            <b>🧑 You ({pair['timestamp']}):</b><br>{pair['question']}<br>
+            <b>🤖 ForecastPal:</b><br>{pair['answer']}
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("</div></div>", unsafe_allow_html=True)  # close both containers
 
 
 # Feedback form
