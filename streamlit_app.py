@@ -100,41 +100,39 @@ def send_feedback_email(subject, body):
         st.error(f"📧 Failed to send feedback via email: {e}")
         return False
 
-# 💬 ForecastPal Chatbot – Unified Block
+# 💬 ForecastPal Chatbot – Unified Interface
 with st.container():
     st.markdown("""
-    <div style='border: 2px solid #e0e0e0; border-radius: 16px; padding: 24px; background-color: #fdfdfd;'>
+    <div style='border: 2px solid #ccc; border-radius: 16px; padding: 24px; background-color: #f9f9f9;'>
         <h3 style='margin-top: 0;'>💬 Ask ForecastPal 🤖</h3>
-        <p>If you have any questions about the forecasts, modeling approach, or why the models differ,<br>
-        ask ForecastPal – your steel forecasting sidekick!</p>
-        <hr style='margin: 12px 0;'>
+        <p style='margin-bottom: 1.5rem;'>If you have any questions about the forecasts, modeling approach, or why the models differ, ask ForecastPal – your steel forecasting sidekick!</p>
     """, unsafe_allow_html=True)
 
+    # Message history
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Scrollable message history inside unified block
-    st.markdown("<div style='max-height: 300px; overflow-y: auto; margin-bottom: 1rem;'>", unsafe_allow_html=True)
-    for chat in st.session_state.chat_history:
-        st.markdown(f"""
-            <div style="margin-bottom: 1rem; padding: 12px; background-color: #f4f4f4; border-radius: 10px; border: 1px solid #ddd;">
-                <p style='margin:0;'><b>🧑 You ({chat['timestamp']}):</b><br>{chat['question']}</p>
-                <p style='margin:8px 0 0 0;'><b>🤖 ForecastPal:</b><br>{chat['answer']}</p>
-            </div>
-        """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    if st.session_state.chat_history:
+        st.markdown("<div style='max-height: 300px; overflow-y: auto; padding-right: 10px;'>", unsafe_allow_html=True)
+        for chat in st.session_state.chat_history:
+            st.markdown(f"""
+                <div style="margin-bottom: 1rem; padding: 12px; background-color: #f0f0f0; border-radius: 10px; border: 1px solid #ddd;">
+                    <p style='margin:0; font-size: 0.9rem;'><b>🧑 You ({chat['timestamp']}):</b><br>{chat['question']}</p>
+                    <p style='margin:8px 0 0 0; font-size: 0.9rem;'><b>🤖 ForecastPal:</b><br>{chat['answer']}</p>
+                </div>
+            """, unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # Input + send
     with st.form(key="chat_form", clear_on_submit=True):
         user_question = st.text_input("Ask ForecastPal...", placeholder="Type your question here")
         submitted = st.form_submit_button("Send")
-
         if submitted and user_question.strip():
             st.session_state["pending_question"] = user_question
 
-    st.markdown("</div>", unsafe_allow_html=True)  # Close outer unified box
+    st.markdown("</div>", unsafe_allow_html=True)  # closes main chat block
 
-# 🧠 Process pending question (show immediately after submit)
+# Handle pending question (outside container)
 if "pending_question" in st.session_state:
     user_question = st.session_state["pending_question"]
     try:
@@ -155,7 +153,6 @@ if "pending_question" in st.session_state:
                 "answer": reply
             })
 
-            # Log via email
             subject = f"📩 Chatbot Question Logged [Session ID: {session_id}]"
             body = f"""Chatbot Question Submitted
 ---------------------------
@@ -170,10 +167,10 @@ AI Response: {reply}
 
     except Exception as e:
         st.error(f"⚠️ ForecastPal had a problem: {e}")
-
     finally:
         del st.session_state["pending_question"]
         st.stop()
+
 
 
 # Feedback form
