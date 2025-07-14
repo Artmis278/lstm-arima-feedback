@@ -123,30 +123,39 @@ with st.container():
         """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
+    # Input + Send button
     with st.form(key="chat_form", clear_on_submit=True):
         user_question = st.text_input("Ask ForecastPal...", placeholder="Type your question here")
         submitted = st.form_submit_button("Send")
 
         if submitted and user_question.strip():
-            with st.spinner("ForecastPal is thinking..."):
-                try:
-                    openai.api_key = st.secrets["openai"]["api_key"]
-                    response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are ForecastPal, a helpful assistant that explains AI models, especially LSTM and ARIMA, used for steel price forecasting."},
-                            {"role": "user", "content": user_question}
-                        ]
-                    )
-                    reply = response.choices[0].message.content
-                    st.session_state.chat_history.append({
-                        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "question": user_question,
-                        "answer": reply
-                    })
+            st.session_state["pending_question"] = user_question  # ✅ Save input to process outside form
 
-                    subject = f"📩 Chatbot Question Logged [Session ID: {session_id}]"
-                    body = f"""Chatbot Question Submitted
+    st.markdown("</div>", unsafe_allow_html=True)  # Close outer box
+
+# 🔄 Process question immediately after form
+if "pending_question" in st.session_state:
+    user_question = st.session_state["pending_question"]
+    with st.spinner("ForecastPal is thinking..."):
+        try:
+            openai.api_key = st.secrets["openai"]["api_key"]
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are ForecastPal, a helpful assistant that explains AI models, especially LSTM and ARIMA, used for steel price forecasting."},
+                    {"role": "user", "content": user_question}
+                ]
+            )
+            reply = response.choices[0].message.content
+
+            st.session_state.chat_history.append({
+                "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "question": user_question,
+                "answer": reply
+            })
+
+            subject = f"📩 Chatbot Question Logged [Session ID: {session_id}]"
+            body = f"""Chatbot Question Submitted
 ---------------------------
 Session ID: {session_id}
 Timestamp: {datetime.datetime.now().isoformat()}
@@ -155,12 +164,15 @@ Model Trusted: {st.session_state['model_choice']}
 User Question: {user_question}
 AI Response: {reply}
 """
-                    send_feedback_email(subject, body)
+            send_feedback_email(subject, body)
 
-                except Exception as e:
-                    st.error(f"⚠️ ForecastPal had a problem: {e}")
+        except Exception as e:
+            st.error(f"⚠️ ForecastPal had a problem: {e}")
 
-    st.markdown("</div>", unsafe_allow_html=True)
+        finally:
+            del st.session_state["pending_question"]
+            st.experimental_rerun()
+
 
 # Feedback form
 st.subheader("🗣️ Expert Feedback")
