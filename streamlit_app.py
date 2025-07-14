@@ -171,7 +171,7 @@ AI Response: {reply}
 
         finally:
             del st.session_state["pending_question"]
-            st.experimental_rerun()
+            st.rerun()
 
 
 # Feedback form
