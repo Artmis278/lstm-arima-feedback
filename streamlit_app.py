@@ -103,20 +103,20 @@ def send_feedback_email(subject, body):
 # 💬 ForecastPal Chatbot – Unified Interface
 with st.container():
     st.markdown("""
-    <div style='border: 2px solid #ccc; border-radius: 16px; padding: 24px; background-color: #f9f9f9;'>
+    <div style='border: 2px solid #ccc; border-radius: 16px; padding: 24px; background-color: #f9f9f9; margin-bottom: 2rem;'>
         <h3 style='margin-top: 0;'>💬 Ask ForecastPal 🤖</h3>
         <p style='margin-bottom: 1.5rem;'>If you have any questions about the forecasts, modeling approach, or why the models differ, ask ForecastPal – your steel forecasting sidekick!</p>
     """, unsafe_allow_html=True)
 
-    # Message history
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
+    # Message history
     if st.session_state.chat_history:
-        st.markdown("<div style='max-height: 300px; overflow-y: auto; padding-right: 10px;'>", unsafe_allow_html=True)
+        st.markdown("<div style='max-height: 300px; overflow-y: auto; margin-bottom: 1.5rem;'>", unsafe_allow_html=True)
         for chat in st.session_state.chat_history:
             st.markdown(f"""
-                <div style="margin-bottom: 1rem; padding: 12px; background-color: #f0f0f0; border-radius: 10px; border: 1px solid #ddd;">
+                <div style="margin-bottom: 1rem; padding: 12px; background-color: #ffffff; border-radius: 10px; border: 1px solid #ddd;">
                     <p style='margin:0; font-size: 0.9rem;'><b>🧑 You ({chat['timestamp']}):</b><br>{chat['question']}</p>
                     <p style='margin:8px 0 0 0; font-size: 0.9rem;'><b>🤖 ForecastPal:</b><br>{chat['answer']}</p>
                 </div>
@@ -130,9 +130,10 @@ with st.container():
         if submitted and user_question.strip():
             st.session_state["pending_question"] = user_question
 
-    st.markdown("</div>", unsafe_allow_html=True)  # closes main chat block
+    # close outer gray box
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# Handle pending question (outside container)
+# Handle pending question (outside the HTML block)
 if "pending_question" in st.session_state:
     user_question = st.session_state["pending_question"]
     try:
@@ -170,6 +171,7 @@ AI Response: {reply}
     finally:
         del st.session_state["pending_question"]
         st.stop()
+
 
 
 
