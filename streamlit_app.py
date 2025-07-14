@@ -13,6 +13,11 @@ df = pd.read_csv("LSTM_ARIMA_ActualPrice.csv", parse_dates=["Prediction_Date"])
 df = df.dropna(subset=["Actual_Price", "Predicted_LSTM_Price", "Predicted_ARIMA_Price"])
 
 st.set_page_config(page_title="Forecast Evaluation Tool", layout="centered")
+# Create a persistent session ID for this visit
+if "session_id" not in st.session_state:
+    st.session_state["session_id"] = str(datetime.datetime.now().timestamp())
+
+session_id = st.session_state["session_id"]
 
 st.title("🔍 Steel Price Forecast Evaluation")
 st.markdown("Welcome! Please select a prediction date to compare actual steel prices with forecasts from LSTM and ARIMA models.")
@@ -157,9 +162,10 @@ if ask_button and user_question.strip():
             st.markdown(f"**ForecastPal 🤖 says:**\n\n{reply}")
 
             # Send email with chat log
-            subject = "📩 Chatbot Question Logged"
+            subject = f"📩 Chatbot Question Logged [Session ID: {session_id}]"
             body = f"""Chatbot Question Submitted
 ---------------------------
+Session ID: {session_id}
 Timestamp: {datetime.datetime.now().isoformat()}
 Prediction Date: {selected_date_str}
 Model Trusted: {model_choice if 'model_choice' in locals() else 'Not selected'}
@@ -181,12 +187,15 @@ comment = st.text_area("Additional comments (optional):")
 
 # Submit feedback logic
 if st.button("Submit Feedback"):
-    subject = f"🗣️ Forecast Feedback - {model_choice}"
-    body = f"""Date: {selected_date_str}
+    subject = f"🗣️ Forecast Feedback - {model_choice} [Session ID: {session_id}]"
+    body = f"""Forecast Feedback Submitted
+Session ID: {session_id}
+Date: {selected_date_str}
 Model: {model_choice}
 Confidence: {confidence}
 Comment: {comment}
-Timestamp: {datetime.datetime.now().isoformat()}"""
+Timestamp: {datetime.datetime.now().isoformat()}
+"""
 
     if send_feedback_email(subject, body):
         st.success("📧 Thank you! Your feedback has been emailed successfully.")
