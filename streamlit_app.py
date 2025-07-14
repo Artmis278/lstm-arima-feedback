@@ -24,7 +24,7 @@ if "chat_history" not in st.session_state:
 session_id = st.session_state["session_id"]
 
 # Title and intro
-st.title("\U0001F50D Steel Price Forecast Evaluation")
+st.title("Steel Price Forecast Evaluation")
 st.markdown("Welcome! Please select a prediction date to compare actual steel prices with forecasts from LSTM and ARIMA models.")
 
 # Date selection
@@ -40,7 +40,7 @@ lstm_pct_error = (lstm_abs_error / row["Actual_Price"]) * 100
 arima_pct_error = (arima_abs_error / row["Actual_Price"]) * 100
 
 # Forecast table
-st.subheader("\U0001F4CA Forecast Comparison")
+st.subheader("Forecast Comparison")
 st.dataframe(pd.DataFrame({
     "Model": ["LSTM", "ARIMA"],
     "Forecasted Price (USD)": [row["Predicted_LSTM_Price"], row["Predicted_ARIMA_Price"]],
@@ -50,7 +50,7 @@ st.dataframe(pd.DataFrame({
 }).set_index("Model"))
 
 # Plot forecast vs actual
-st.subheader("\U0001F4C8 Forecast vs Actual Prices (Interactive)")
+st.subheader("Forecast vs Actual Prices (Interactive)")
 trend_df = df.sort_values("Prediction_Date").tail(12)
 trend_df["Prediction_Date_str"] = trend_df["Prediction_Date"].dt.strftime("%Y-%m")
 trend_df["LSTM_%_Error"] = abs(trend_df["Predicted_LSTM_Price"] - trend_df["Actual_Price"]) / trend_df["Actual_Price"] * 100
@@ -65,11 +65,11 @@ highlight = trend_df[trend_df["Prediction_Date_str"] == selected_date_str]
 if not highlight.empty:
     fig.add_trace(go.Scatter(x=highlight["Prediction_Date_str"], y=highlight["Actual_Price"], mode='markers', name='Selected Date', marker=dict(size=12, color='gold', symbol='star')))
 
-fig.update_layout(title="\U0001F4C8 Actual vs Predicted Prices Over Time", xaxis_title="Prediction Month", yaxis_title="Price (USD)", hovermode="x unified")
+fig.update_layout(title="Actual vs Predicted Prices Over Time", xaxis_title="Prediction Month", yaxis_title="Price (USD)", hovermode="x unified")
 st.plotly_chart(fig, use_container_width=True)
 
 # Model explanation
-with st.expander("\u2139\ufe0f How do these models work?"):
+with st.expander("How do these models work?"):
     st.markdown("**LSTM** is a deep learning model for sequences, great for volatile markets.")
     st.markdown("**ARIMA** is a statistical model using past values, known for transparency.")
 
@@ -89,7 +89,7 @@ def send_feedback_email(subject, body):
         server.quit()
         return True
     except Exception as e:
-        st.error(f"\U0001F4E7 Failed to send feedback via email: {e}")
+        st.error(f"Failed to send feedback via email: {e}")
         return False
 
 # -----------------------------
@@ -149,16 +149,24 @@ with st.container():
 # -----------------------------
 # Feedback Section
 # -----------------------------
-st.subheader("\U0001F5E3\ufe0f Expert Feedback")
+# Expert Feedback Form
+st.subheader("🗣️ Expert Feedback")
 model_choice = st.radio("Which model's prediction do you trust more?", ["LSTM", "ARIMA", "Both equally", "Neither"])
 st.session_state["model_choice"] = model_choice
 confidence = st.slider("How confident would you be using this forecast in a real procurement decision?", 0, 100, 50)
 comment = st.text_area("Additional comments (optional):")
 
 if st.button("Submit Feedback"):
-    subject = f"\U0001F5E3\ufe0f Forecast Feedback - {model_choice} [Session ID: {session_id}]"
-    body = f"""Forecast Feedback Submitted\nSession ID: {session_id}\nDate: {selected_date_str}\nModel: {model_choice}\nConfidence: {confidence}\nComment: {comment}\nTimestamp: {datetime.datetime.now().isoformat()}"
+    subject = f"🗣️ Forecast Feedback - {model_choice} [Session ID: {session_id}]"
+    body = f"""Forecast Feedback Submitted
+Session ID: {session_id}
+Date: {selected_date_str}
+Model: {model_choice}
+Confidence: {confidence}
+Comment: {comment}
+Timestamp: {datetime.datetime.now().isoformat()}
+"""
     if send_feedback_email(subject, body):
-        st.success("\U0001F4E7 Thank you! Your feedback has been emailed successfully.")
+        st.success("📧 Thank you! Your feedback has been emailed successfully.")
     else:
-        st.error("\u274c Feedback could not be sent.")
+        st.error("❌ Feedback could not be sent.")
