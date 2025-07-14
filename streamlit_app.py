@@ -152,10 +152,6 @@ if ask_button and user_question.strip():
     with st.spinner("ForecastPal is thinking..."):
         try:
             openai.api_key = st.secrets["openai"]["api_key"]
-        except KeyError:
-            st.error("🔐 OpenAI API key is currently unavailable. Please refresh or try again shortly.")
-            st.stop()  # ⛔ stops execution if key is missing
-
             # Send question to OpenAI
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
