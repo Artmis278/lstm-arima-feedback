@@ -136,12 +136,12 @@ def send_feedback_email(subject, body):
         return False
 import openai
 # -----------------------------
-# 💬 ForecastPal Chatbot Section with Chat History
+# 💬 ForecastPal Chatbot Section (Fixed Layout + History)
 # -----------------------------
 with st.container():
     st.markdown(
         """
-        <div style='border: 1px solid lightgray; border-radius: 10px; padding: 20px; background-color: #f9f9f9;'>
+        <div style='border: 1px solid lightgray; border-radius: 10px; padding: 20px; background-color: #f9f9f9; margin-bottom: 1rem;'>
             <h3 style='margin-top: 0;'>💬 Ask ForecastPal 🤖</h3>
             <p>If you have any questions about the forecasts, modeling approach, or why the models differ, ask ForecastPal – your steel forecasting sidekick!</p>
         """,
@@ -152,7 +152,7 @@ with st.container():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Chat input
+    # Chat input inside container
     user_question = st.text_input("Type your question:", key="chat_input")
 
     if st.button("Ask ForecastPal"):
@@ -169,14 +169,14 @@ with st.container():
                     )
                     reply = response.choices[0].message.content
 
-                    # Append to history
+                    # Save to history
                     st.session_state.chat_history.append({
                         "question": user_question,
                         "answer": reply,
                         "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     })
 
-                    # Send email with chat log
+                    # Send via email
                     subject = f"📩 Chatbot Question Logged [Session ID: {session_id}]"
                     body = f"""Chatbot Question Submitted
 ---------------------------
@@ -189,21 +189,21 @@ AI Response: {reply}
 """
                     send_feedback_email(subject, body)
 
-                    # Clear input
-                    st.experimental_rerun()
+                    # Clear input & rerun to reset input field
+                    st.rerun()
 
                 except Exception as e:
                     st.error(f"⚠️ ForecastPal had a problem: {e}")
 
-    # Display chat history
+    # Display history (scrollable)
     st.markdown(
         """
-        <div style='max-height: 300px; overflow-y: auto; padding: 10px; background-color: #ffffff; border: 1px solid #ccc; border-radius: 8px; margin-top: 20px;'>
+        <div style='max-height: 300px; overflow-y: auto; padding: 10px; background-color: #fff; border: 1px solid #ccc; border-radius: 8px; margin-top: 20px;'>
         """,
         unsafe_allow_html=True
     )
 
-    for pair in st.session_state.chat_history[::-1]:  # latest on top
+    for pair in reversed(st.session_state.chat_history):
         st.markdown(f"""
         <div style="margin-bottom: 15px;">
             <b>🧑 You ({pair['timestamp']}):</b><br>{pair['question']}<br>
@@ -211,7 +211,7 @@ AI Response: {reply}
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("</div></div>", unsafe_allow_html=True)  # close both containers
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
 
 # Feedback form
