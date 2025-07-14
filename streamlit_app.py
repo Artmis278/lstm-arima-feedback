@@ -103,35 +103,59 @@ def send_feedback_email(subject, body):
 # 💬 ForecastPal Chatbot – Unified Chat Interface
 with st.container():
     st.markdown("""
-        <div style='border: 1px solid lightgray; border-radius: 12px; padding: 20px; background-color: #f9f9f9;'>
-            <h3 style='margin-top: 0;'>💬 Ask ForecastPal 🤖</h3>
-            <p>If you have any questions about the forecasts, modeling approach, or why the models differ,<br>
+        <div style='border: 2px solid #4CAF50; border-radius: 15px; padding: 25px; background-color: #f8f9fa; margin: 20px 0;'>
+            <h3 style='margin-top: 0; color: #2E7D32; text-align: center;'>💬 Ask ForecastPal 🤖</h3>
+            <p style='text-align: center; color: #555; margin-bottom: 20px;'>If you have any questions about the forecasts, modeling approach, or why the models differ,<br>
             ask ForecastPal – your steel forecasting sidekick!</p>
     """, unsafe_allow_html=True)
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
+    # Chat History Section
+    st.markdown("""
+        <div style='background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 20px;'>
+            <h4 style='margin-top: 0; color: #333;'>📜 Chat History</h4>
+    """, unsafe_allow_html=True)
+    
     # Scrollable message history
     st.markdown("<div style='max-height: 300px; overflow-y: auto;'>", unsafe_allow_html=True)
-    for chat in st.session_state.chat_history:
-        st.markdown(f"""
-            <div style="margin-bottom: 1rem; padding: 10px; background-color: #ffffff; border-radius: 10px; border: 1px solid #ddd;">
-                <p style='margin:0;'><b>🧑 You ({chat['timestamp']}):</b><br>{chat['question']}</p>
-                <p style='margin:8px 0 0 0;'><b>🤖 ForecastPal:</b><br>{chat['answer']}</p>
+    
+    if st.session_state.chat_history:
+        for chat in st.session_state.chat_history:
+            st.markdown(f"""
+                <div style="margin-bottom: 1rem; padding: 12px; background-color: #f5f5f5; border-radius: 8px; border-left: 4px solid #4CAF50;">
+                    <p style='margin:0; color: #2E7D32;'><b>🧑 You ({chat['timestamp']}):</b></p>
+                    <p style='margin:5px 0 10px 0; color: #333;'>{chat['question']}</p>
+                    <p style='margin:0; color: #1976D2;'><b>🤖 ForecastPal:</b></p>
+                    <p style='margin:5px 0 0 0; color: #333;'>{chat['answer']}</p>
+                </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <div style='text-align: center; color: #888; font-style: italic; padding: 20px;'>
+                No conversation yet. Start by asking a question below!
             </div>
         """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.markdown("</div></div>", unsafe_allow_html=True)  # Close scrollable area and chat history section
 
+    # Input Section
+    st.markdown("""
+        <div style='background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px;'>
+            <h4 style='margin-top: 0; color: #333;'>✍️ Ask Your Question</h4>
+    """, unsafe_allow_html=True)
+    
     # Input + Send button
     with st.form(key="chat_form", clear_on_submit=True):
-        user_question = st.text_input("Ask ForecastPal...", placeholder="Type your question here")
-        submitted = st.form_submit_button("Send")
+        user_question = st.text_input("Ask ForecastPal...", placeholder="Type your question here", help="Ask about LSTM vs ARIMA models, forecast accuracy, or any other questions!")
+        submitted = st.form_submit_button("Send", use_container_width=True)
 
         if submitted and user_question.strip():
             st.session_state["pending_question"] = user_question  # ✅ Save input to process outside form
 
-    st.markdown("</div>", unsafe_allow_html=True)  # Close outer box
+    st.markdown("</div>", unsafe_allow_html=True)  # Close input section
+    st.markdown("</div>", unsafe_allow_html=True)  # Close main container box
 
 # 🔄 Process question immediately after form
 if "pending_question" in st.session_state:
@@ -145,7 +169,7 @@ if "pending_question" in st.session_state:
                     {"role": "system", "content": "You are ForecastPal, a helpful assistant that explains AI models, especially LSTM and ARIMA, used for steel price forecasting."},
                     {"role": "user", "content": user_question}
                 ]
-            )
+            ),
             reply = response.choices[0].message.content
 
             st.session_state.chat_history.append({
@@ -172,7 +196,6 @@ AI Response: {reply}
         finally:
             del st.session_state["pending_question"]
             st.rerun()
-
 # Feedback form
 st.subheader("🗣️ Expert Feedback")
 model_choice = st.radio("Which model's prediction do you trust more?", ["LSTM", "ARIMA", "Both equally", "Neither"])
