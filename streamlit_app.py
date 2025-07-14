@@ -100,44 +100,42 @@ def send_feedback_email(subject, body):
         st.error(f"📧 Failed to send feedback via email: {e}")
         return False
 
-# 💬 ForecastPal Chatbot – Unified Chat Interface
+# 💬 ForecastPal Chatbot – Fully Inside One Box
 with st.container():
     st.markdown("""
-        <div style='border: 1px solid lightgray; border-radius: 12px; padding: 20px; background-color: #f9f9f9;'>
-            <h3 style='margin-top: 0;'>💬 Ask ForecastPal 🤖</h3>
-            <p>If you have any questions about the forecasts, modeling approach, or why the models differ,<br>
-            ask ForecastPal – your steel forecasting sidekick!</p>
+    <div style='border: 2px solid #ccc; border-radius: 16px; padding: 24px; background-color: #f9f9f9; margin-bottom: 2rem;'>
+        <h3 style='margin-top: 0;'>💬 Ask ForecastPal 🤖</h3>
+        <p>If you have any questions about the forecasts, modeling approach, or why the models differ, ask ForecastPal – your steel forecasting sidekick!</p>
     """, unsafe_allow_html=True)
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Scrollable message history
-    st.markdown("<div style='max-height: 300px; overflow-y: auto;'>", unsafe_allow_html=True)
-    for chat in st.session_state.chat_history:
-        st.markdown(f"""
-            <div style="margin-bottom: 1rem; padding: 10px; background-color: #ffffff; border-radius: 10px; border: 1px solid #ddd;">
-                <p style='margin:0;'><b>🧑 You ({chat['timestamp']}):</b><br>{chat['question']}</p>
-                <p style='margin:8px 0 0 0;'><b>🤖 ForecastPal:</b><br>{chat['answer']}</p>
-            </div>
-        """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    # Message history inside the same box
+    if st.session_state.chat_history:
+        st.markdown("<div style='max-height: 300px; overflow-y: auto; margin-top: 1rem;'>", unsafe_allow_html=True)
+        for chat in st.session_state.chat_history:
+            st.markdown(f"""
+                <div style="margin-bottom: 1rem; padding: 12px; background-color: #ffffff; border-radius: 10px; border: 1px solid #ddd;">
+                    <p style='margin:0; font-size: 0.9rem;'><b>🧑 You ({chat['timestamp']}):</b><br>{chat['question']}</p>
+                    <p style='margin:8px 0 0 0; font-size: 0.9rem;'><b>🤖 ForecastPal:</b><br>{chat['answer']}</p>
+                </div>
+            """, unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    # Input + Send button
+    # Input + send button inside same gray box
     with st.form(key="chat_form", clear_on_submit=True):
         user_question = st.text_input("Ask ForecastPal...", placeholder="Type your question here")
         submitted = st.form_submit_button("Send")
-
         if submitted and user_question.strip():
-            st.session_state["pending_question"] = user_question  # ✅ Save input to process outside form
+            st.session_state["pending_question"] = user_question
 
-    st.markdown("</div>", unsafe_allow_html=True)  # Close outer box
-
-# 🔄 Process question immediately after form
+    st.markdown("</div>", unsafe_allow_html=True)  # close outer box
+# Process the pending question after form submission
 if "pending_question" in st.session_state:
     user_question = st.session_state["pending_question"]
-    with st.spinner("ForecastPal is thinking..."):
-        try:
+    try:
+        with st.spinner("ForecastPal is thinking..."):
             openai.api_key = st.secrets["openai"]["api_key"]
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
@@ -166,12 +164,11 @@ AI Response: {reply}
 """
             send_feedback_email(subject, body)
 
-        except Exception as e:
-            st.error(f"⚠️ ForecastPal had a problem: {e}")
-
-        finally:
-            del st.session_state["pending_question"]
-            st.rerun()
+    except Exception as e:
+        st.error(f"⚠️ ForecastPal had a problem: {e}")
+    finally:
+        del st.session_state["pending_question"]
+        st.stop()
 
 # Feedback form
 st.subheader("🗣️ Expert Feedback")
