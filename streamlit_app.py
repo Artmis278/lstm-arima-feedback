@@ -100,44 +100,44 @@ def send_feedback_email(subject, body):
         st.error(f"📧 Failed to send feedback via email: {e}")
         return False
 
-# 💬 ForecastPal Chatbot – Unified Interface
+# 💬 ForecastPal Chatbot – Unified Chat Interface
 with st.container():
     st.markdown("""
-    <div style='border: 2px solid #ccc; border-radius: 16px; padding: 24px; background-color: #f9f9f9; margin-bottom: 2rem;'>
-        <h3 style='margin-top: 0;'>💬 Ask ForecastPal 🤖</h3>
-        <p style='margin-bottom: 1.5rem;'>If you have any questions about the forecasts, modeling approach, or why the models differ, ask ForecastPal – your steel forecasting sidekick!</p>
+        <div style='border: 1px solid lightgray; border-radius: 12px; padding: 20px; background-color: #f9f9f9;'>
+            <h3 style='margin-top: 0;'>💬 Ask ForecastPal 🤖</h3>
+            <p>If you have any questions about the forecasts, modeling approach, or why the models differ,<br>
+            ask ForecastPal – your steel forecasting sidekick!</p>
     """, unsafe_allow_html=True)
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Message history
-    if st.session_state.chat_history:
-        st.markdown("<div style='max-height: 300px; overflow-y: auto; margin-bottom: 1.5rem;'>", unsafe_allow_html=True)
-        for chat in st.session_state.chat_history:
-            st.markdown(f"""
-                <div style="margin-bottom: 1rem; padding: 12px; background-color: #ffffff; border-radius: 10px; border: 1px solid #ddd;">
-                    <p style='margin:0; font-size: 0.9rem;'><b>🧑 You ({chat['timestamp']}):</b><br>{chat['question']}</p>
-                    <p style='margin:8px 0 0 0; font-size: 0.9rem;'><b>🤖 ForecastPal:</b><br>{chat['answer']}</p>
-                </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    # Scrollable message history
+    st.markdown("<div style='max-height: 300px; overflow-y: auto;'>", unsafe_allow_html=True)
+    for chat in st.session_state.chat_history:
+        st.markdown(f"""
+            <div style="margin-bottom: 1rem; padding: 10px; background-color: #ffffff; border-radius: 10px; border: 1px solid #ddd;">
+                <p style='margin:0;'><b>🧑 You ({chat['timestamp']}):</b><br>{chat['question']}</p>
+                <p style='margin:8px 0 0 0;'><b>🤖 ForecastPal:</b><br>{chat['answer']}</p>
+            </div>
+        """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    # Input + send
+    # Input + Send button
     with st.form(key="chat_form", clear_on_submit=True):
         user_question = st.text_input("Ask ForecastPal...", placeholder="Type your question here")
         submitted = st.form_submit_button("Send")
+
         if submitted and user_question.strip():
-            st.session_state["pending_question"] = user_question
+            st.session_state["pending_question"] = user_question  # ✅ Save input to process outside form
 
-    # close outer gray box
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)  # Close outer box
 
-# Handle pending question (outside the HTML block)
+# 🔄 Process question immediately after form
 if "pending_question" in st.session_state:
     user_question = st.session_state["pending_question"]
-    try:
-        with st.spinner("ForecastPal is thinking..."):
+    with st.spinner("ForecastPal is thinking..."):
+        try:
             openai.api_key = st.secrets["openai"]["api_key"]
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
@@ -166,14 +166,12 @@ AI Response: {reply}
 """
             send_feedback_email(subject, body)
 
-    except Exception as e:
-        st.error(f"⚠️ ForecastPal had a problem: {e}")
-    finally:
-        del st.session_state["pending_question"]
-        st.stop()
+        except Exception as e:
+            st.error(f"⚠️ ForecastPal had a problem: {e}")
 
-
-
+        finally:
+            del st.session_state["pending_question"]
+            st.rerun()
 
 # Feedback form
 st.subheader("🗣️ Expert Feedback")
